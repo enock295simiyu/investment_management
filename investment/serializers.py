@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from .models import InvestmentAccount, InvestmentAccountUser, Transaction
 
 
@@ -12,6 +13,13 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = ['id', 'amount', 'created']
+
+    def create(self, validated_data):
+        account_id = self.context['view'].kwargs.get('account_id')
+        validated_data['account_id'] = account_id
+        validated_data['user'] = self.context['view'].request.user
+        transaction = Transaction.objects.create(**validated_data)
+        return transaction
 
 
 class InvestmentAccountUserSerializer(serializers.ModelSerializer):

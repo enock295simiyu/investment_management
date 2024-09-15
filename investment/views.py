@@ -1,14 +1,14 @@
-from django.shortcuts import render
-
 # Create your views here.
-from rest_framework import viewsets
-from rest_framework.response import Response
-from rest_framework.decorators import action
-from django_filters.rest_framework import DjangoFilterBackend
-from .models import InvestmentAccount, Transaction
-from .serializers import InvestmentAccountSerializer, TransactionSerializer
-from .permissions import IsTransactionAllowed
 from django.db.models import Sum
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+
+from .models import InvestmentAccount, Transaction
+from .permissions import IsTransactionAllowed
+from .serializers import InvestmentAccountSerializer, TransactionSerializer
 
 
 class InvestmentAccountViewSet(viewsets.ModelViewSet):
@@ -18,9 +18,9 @@ class InvestmentAccountViewSet(viewsets.ModelViewSet):
 
 class TransactionViewSet(viewsets.ModelViewSet):
     serializer_class = TransactionSerializer
-    # permission_classes = [IsTransactionAllowed]
+    permission_classes = [IsTransactionAllowed]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['created_at']
+    filterset_fields = ['created']
     queryset = Transaction.objects.all()
 
     def get_queryset(self):
@@ -28,6 +28,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
 
 class AdminViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
     @action(detail=False, methods=['get'], url_path='transactions-summary')
     def transactions_summary(self, request):
