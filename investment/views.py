@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
+from .filters import TransactionFilter
 from .models import InvestmentAccount, Transaction
 from .permissions import IsTransactionAllowed
 from .serializers import InvestmentAccountSerializer, TransactionSerializer
@@ -27,21 +28,16 @@ class TransactionViewSet(viewsets.ModelViewSet):
         return Transaction.objects.filter(account_id=self.kwargs['account_id'])
 
 
-class AdminViewSet(viewsets.ViewSet):
+class AdminViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsAdminUser]
+    filterset_class = TransactionFilter
+    queryset = Transaction.objects.all()
+    serializer_class = TransactionSerializer
 
     @action(detail=False, methods=['get'], url_path='transactions-summary')
     def transactions_summary(self, request):
-        user_id = request.query_params.get('user_id')
-        start_date = request.query_params.get('start_date')
-        end_date = request.query_params.get('end_date')
-
-        transactions = Transaction.objects.filter(user_id=user_id)
-        if start_date and end_date:
-            transactions = transactions.filter(created_at__range=[start_date, end_date])
-
-        total_balance = transactions.aggregate(Sum('amount'))['amount__sum'] or 0
-        transaction_data = TransactionSerializer(transactions, many=True).data
+        total_balance = self.queryset.aggregate(Sum('amount'))['amount__sum'] or 0
+        transaction_data = TransactionSerializer(self.queryset, many=True).data
 
         return Response({
             'transactions': transaction_data,
