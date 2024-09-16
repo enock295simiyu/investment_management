@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
+from django.urls import reverse
 from rest_framework.test import APIClient
 
 from .models import InvestmentAccount, InvestmentAccountUser
@@ -21,13 +22,15 @@ class InvestmentAccountTests(TestCase):
 
     def test_view_only_permission(self):
         self.client.login(username='user1', password='pass')
-        response = self.client.get(f'/accounts/{self.account1.id}/transactions/')
+        response = self.client.get(reverse('investment:account-detail', kwargs={'pk': self.account1.pk}))
         self.assertEqual(response.status_code, 200)
 
-        response = self.client.post(f'/accounts/{self.account1.id}/transactions/', {'amount': 100})
+        response = self.client.post(reverse('investment:transactions-list', kwargs={'account_id': self.account1.pk}),
+                                    {'amount': 100})
         self.assertEqual(response.status_code, 403)  # View only, can't post transactions
 
     def test_full_access_permission(self):
         self.client.login(username='user1', password='pass')
-        response = self.client.post(f'/accounts/{self.account2.id}/transactions/', {'amount': 100})
+        response = self.client.post(reverse('investment:transactions-list', kwargs={'account_id': self.account2.pk}),
+                                    {'amount': 100})
         self.assertEqual(response.status_code, 201)  # Full access, can post transactions
