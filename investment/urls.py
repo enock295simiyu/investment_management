@@ -7,7 +7,7 @@ app_name = 'investment'
 router = DefaultRouter(use_regex_path=False)
 router.register('accounts', InvestmentAccountViewSet, basename='account')
 router.register('accounts/<uuid:account_id>/transactions', TransactionViewSet, basename='transactions')
-router.register(r'admin', AdminViewSet, basename='admin')
+router.register('admin', AdminViewSet, basename='admin')
 
 urlpatterns = [
     path('', include(router.urls)),
