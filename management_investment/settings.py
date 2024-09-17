@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'drf_yasg',
     'django_filters',
-    "drf_test_generator",
     'investment',
 ]
 
